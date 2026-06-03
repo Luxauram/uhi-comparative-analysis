@@ -1,0 +1,80 @@
+# ================================
+# uhi-comparative-analysis - .gitignore
+# ================================
+
+# OS & System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+desktop.ini
+
+# IDE & Editor
+.vscode/*
+*.code-workspace
+.history/
+
+# R & RStudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+.Renviron
+*.Rproj
+
+renv/library/
+renv/local/
+renv/staging/
+renv/cache/
+
+# QGIS & Temp Files
+*.qgs~
+*.qgz~
+*.qml~
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Spatial Data
+*.tif
+*.tiff
+*.nc
+*.hdf
+*.h5
+
+*.shp
+*.shx
+*.dbf
+*.prj
+*.sbn
+*.sbx
+*.cpg
+*.gpkg
+*.geojson
+*.kml
+*.kmz
+
+# Project Structure & Data
+data/raw/*
+data/processed/*
+temp/*
+outputs/*
+
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!temp/.gitkeep
+!outputs/.gitkeep
