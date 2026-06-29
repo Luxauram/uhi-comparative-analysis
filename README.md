@@ -6,72 +6,109 @@
 
 This project investigates the relationship between urbanization, vegetation cover (NDVI), and the formation of Urban Heat Islands (UHI). By analyzing satellite imagery from Landsat 8/9, this study compares two distinct Italian urban environments:
 
-- **Milan (Lombardy):** A highly urbanized, densely populated metropolitan area.
-- **Termoli (Molise):** A smaller, coastal town with different vegetation dynamics and maritime climate influence.
+- **Milan (Lombardy):** A highly urbanized, densely populated metropolitan area with a continental climate.
+- **Termoli (Molise):** A smaller, coastal town with different vegetation dynamics and a maritime climate influence.
 
-The goal is to quantitatively assess how the density of the built environment and the presence of Green Infrastructure (GI) mitigate or exacerbate summer land surface temperatures (LST).
+The goal is to quantitatively assess how the density of the built environment and the presence of Green Infrastructure (GI) mitigate or exacerbate summer land surface temperatures (LST) - and to mathematically demonstrate the mitigation effect of urban vegetation through statistical correlation analysis.
+
+## Methodology
+
+The project relies on a programmatic and fully reproducible workflow:
+
+1. **R (`terra`, `sf`, `dplyr`):** Heavy spatial computation. Extracts Band 10 (Thermal) to calculate TOA Radiance, Brightness Temperature, and Celsius LST. Also processes Band 4 (Red) and Band 5 (NIR) to compute NDVI.
+2. **QGIS:** Spatial visualization - pseudocolor ramps, transparency layers, and OpenStreetMap basemaps to contextually analyze the UHI effect across neighborhoods.
+3. **R (`ggplot2`):** Statistical sampling (5,000 random pixels per city) and scatter plots with linear regression to compute the Pearson Correlation Coefficient.
+
+## Results
+
+The statistical analysis confirms a **negative correlation between vegetation presence and surface temperature**, but highlights how geographical context significantly shapes the UHI dynamic.
+
+### Milan (Continental)
+
+- **Pearson Correlation (R):** `-0.70`
+- **Insight:** Strong negative correlation. In a landlocked, densely built environment, vegetation is the primary mitigating factor against extreme heat.
+
+![LST vs NDVI Milan](data/processed/milan_lst_vs_ndvi.png)
+
+### Termoli (Coastal)
+
+- **Pearson Correlation (R):** `-0.52`
+- **Insight:** Moderate negative correlation. While vegetation still lowers temperatures, the cooling effect of the Adriatic Sea breeze strongly influences the local microclimate, making the UHI effect less strictly dependent on NDVI alone.
+
+![LST vs NDVI Termoli](data/processed/termoli_lst_vs_ndvi.png)
 
 ## Technologies Used
 
-- **QGIS:** For spatial data ingestion, raster calculation (NDVI, LST extraction via Semi-Automatic Classification Plugin), and geoprocessing.
-- **R & RStudio:** For statistical analysis, spatial data preparation, and data visualization (`sf`, `dplyr`, `ggplot2`).
-- **Git/GitHub:** For version control and reproducible research.
+- **QGIS:** Spatial data ingestion, raster calculation (NDVI, LST extraction via Semi-Automatic Classification Plugin), and geoprocessing.
+- **R & RStudio:** Statistical analysis, spatial data preparation, and visualization (`terra`, `sf`, `dplyr`, `ggplot2`).
+- **Git/GitHub:** Version control and reproducible research.
+
+## Repository Structure
+
+```
+.
+├── data/
+│   ├── raw/              # Raw Landsat .tar archives + ISTAT boundaries (git-ignored)
+│   └── processed/        # Clipped rasters (.tif), vectors (.gpkg), output plots (.png)
+├── scripts/              # R scripts for spatial processing and statistical analysis
+└── qgis_project/         # QGIS project file (.qgz) with styled map layouts
+```
 
 ## How to Run the Project
 
-To keep this repository lightweight, raw spatial data (like satellite imagery and national shapefiles) are **not** tracked by Git. Follow these steps to reproduce the environment locally:
+To keep this repository lightweight, raw spatial data (satellite imagery, national shapefiles) are **not** tracked by Git. Follow these steps to reproduce the environment locally.
 
 ### Step 1: R Environment Setup
 
-This project uses `renv` to manage R package dependencies.
+Make sure R is installed, then install the required packages:
 
-1. Open the project in RStudio (or your preferred R IDE).
-2. Run the following command in the R console to install the exact package versions used in this project:
-   ```R
-   renv::restore()
-   ```
+```R
+install.packages(c("terra", "sf", "dplyr", "ggplot2"))
+```
 
 ### Step 2: Fetching Base Data (AOI)
 
-To generate the Area of Interest (AOI) boundaries for Milan and Termoli:
+Run the setup script to generate the Area of Interest boundaries for Milan and Termoli:
 
-1. Run the setup script located in the `scripts` folder:
-   ```R
-   source("scripts/00_setup_data.R")
-   ```
+```R
+source("scripts/00_setup_data.R")
+```
 
-_This script automatically downloads the latest generalized municipal boundaries from ISTAT, extracts them, filters for Milan and Termoli, and saves a clean `aoi_milano_termoli.gpkg` file in the `data/processed/` folder._
+This script automatically downloads the latest generalized municipal boundaries from ISTAT, extracts them, filters for Milan and Termoli, and saves a clean `aoi_milano_termoli.gpkg` in `data/processed/`.
 
 ### Step 3: Satellite Imagery (Landsat)
 
-Due to file size constraints and GitHub best practices, the raw satellite images (approx. 1GB each) are not included in this repository. To reproduce the analysis, you must download the exact same Landsat scenes used for this study.
+Raw satellite images (~1 GB each) are not included due to file size. Download the exact scenes used for this study from [USGS EarthExplorer](https://earthexplorer.usgs.gov/) _(free EROS account required)_.
 
-**Data Source:** [USGS EarthExplorer](https://earthexplorer.usgs.gov/) _(Note: A free EROS account is required for downloading)._
-
-**Search Criteria & Sensor:**
+**Search Criteria:**
 
 - **Dataset:** Landsat 8-9 OLI/TIRS C2 L1 (Collection 2, Level-1)
 - **Cloud Cover:** Less than 10%
 
-**Specific Scenes Used:**
-To maximize the visibility of the UHI effect, scenes were selected during the peak of the August 2023 heatwave (Anticyclone "Nero"), ensuring maximum thermal stress and zero precipitation in the preceding days.
+**Scenes Used:**
+Selected during the peak of the August 2023 heatwave (Anticyclone "Nero"), ensuring maximum thermal stress and zero prior precipitation.
 
-1. **Milan (Lombardy):**
-   - Acquisition Date: `2023-08-22`
-   - Satellite: Landsat 8
-   - Scene ID: `LC08_L1TP_193028_20230822_20230826_02_T1`
+| City    | Date       | Satellite | Scene ID                                   |
+| ------- | ---------- | --------- | ------------------------------------------ |
+| Milan   | 2023-08-22 | Landsat 8 | `LC08_L1TP_193028_20230822_20230826_02_T1` |
+| Termoli | 2023-08-18 | Landsat 9 | `LC09_L1TP_189031_20230818_20230818_02_T1` |
 
-2. **Termoli (Molise):**
-   - Acquisition Date: `2023-08-18`
-   - Satellite: Landsat 9
-   - Scene ID: `LC09_L1TP_189031_20230818_20230818_02_T1`
+Download the `Product Bundle` (.tar archives) for both scenes, extract them, and place the resulting folders directly into `data/raw/`.
 
-**Installation:**
-Download the `Product Bundle` (.tar archives) for both scenes. Extract them and place the resulting folders directly into the `data/raw/` directory.
+### Step 4: Run the Analysis Scripts
 
-### Step 4: QGIS Project
+Execute the R scripts in order:
 
-Once the base data and satellite imagery are downloaded into the `data/` folder, you can open the QGIS project file (`qgis_project/progetto_calore.qgz`). All layers are configured with relative paths, so they will load automatically.
+```R
+source("scripts/01_process_temperature.R")       # LST for Milan
+source("scripts/02_process_temperature_termoli.R") # LST for Termoli
+source("scripts/03_process_ndvi.R")              # NDVI for both cities
+source("scripts/04_statistical_analysis.R")      # Correlation + plots
+```
+
+### Step 5: QGIS Visualization
+
+Open `qgis_project/progetto_calore.qgz` to explore the spatial data. All layers use relative paths and will load automatically once the data is in place.
 
 ## License
 
